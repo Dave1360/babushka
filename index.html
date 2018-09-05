@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Babuskha</title>
+    <style>
+        * {
+            font-family: sans-serif;
+        }
+
+        body {
+            background-color: rgb(255, 255, 255);
+            margin: 0;
+        }
+
+        article {
+            padding: 1em;
+            background-color: white;
+        }
+
+        .data-container article img {
+            width: 100%;
+        }
+
+        .data-container {
+            margin: 0 auto;
+            display: grid;
+        }
+
+        @media screen and (min-width:580px) {
+            .data-container {
+                padding-left: 10%;
+                padding-right: 10%;
+                grid-gap: 5px;
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        header h1 {
+            text-transform: capitalize;
+            margin-left: 10vw;
+        }
+
+        .menu-item {
+            border-radius: 5px;
+        }
+
+        nav {
+            margin-left: 10vw;
+            margin-top: 10px;
+        }
+
+        article:nth-child(odd) {
+            background: #ccc;
+        }
+
+        #modal {
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 100vw;
+            height: 100vw;
+            position: fixed;
+            text-align: center;
+            /*display: none;*/
+            opacity: 0;
+            pointer-events: none;
+            transition: 1s;
+        }
+
+        #modal-content {
+            width: 40vw;
+            height: 35vw;
+            background-color: rgba(250, 250, 250);
+            margin: auto;
+            border-radius: 20px;
+            padding-left: 3vw;
+            padding-right: 3vw;
+
+        }
+
+        #modal.vis {
+            /*display: block;*/
+            opacity: 1;
+            pointer-events: all;
+            transition: 0.5s;
+        }
+
+        .modal-navn {
+            line-height: 70px;
+        }
+
+
+
+    </style>
+</head>
+
+<body>
+
+    <section id="modal">
+        <button>Close</button>
+        <div id="modal-content">
+            <h2 class="modal-navn"></h2>
+            <img class="modal-billede" src="" alt=""><br>
+            <span class="modal-langbeskrivelse"></span>
+        </div>
+    </section>
+
+    <header>
+        <nav>
+            <button class="menu-item" data-kategori="menu">Alle Retter</button>
+            <button class="menu-item" data-kategori="forretter">Forretter</button>
+            <button class="menu-item" data-kategori="hovedretter">Hovedretter</button>
+            <button class="menu-item" data-kategori="desserter">Desserter</button>
+            <button class="menu-item" data-kategori="drikkevarer">Drikkevarer</button>
+            <button class="menu-item" data-kategori="sideorders">Sideorders</button>
+        </nav>
+        <h1></h1>
+    </header>
+    <main class="container">
+        <section class="data-container"></section>
+    </main>
+    <template class="data-template">
+        <article class="retter">
+
+            <img src="" alt=""><br>
+            <h2></h2>
+            <span class="data-kortbeskrivelse"></span><br>
+            <br><span class="data-pris"></span>
+
+        </article>
+    </template>
+    <script>
+        let modal = document.querySelector("#modal");
+
+        let dest = document.querySelector(".data-container"),
+            retter,
+            madFilter = "menu";
+        document.addEventListener("DOMContentLoaded", hentJson);
+        async function hentJson() {
+            let myJson = await fetch("menu.json");
+            retter = await myJson.json();
+            visRetter();
+        }
+
+        document.querySelectorAll(".menu-item").forEach(knap => {
+            knap.addEventListener("click", filtrering);
+        });
+
+        function filtrering() {
+            dest.textContent = "";
+            madFilter = this.getAttribute("data-kategori");
+            visRetter();
+
+        }
+
+        function visRetter() {
+            temp = document.querySelector(".data-template");
+            document.querySelector("header h1").textContent = madFilter;
+            //løb personlisten igennem og lav en klon
+            retter.forEach(retter => {
+                if (retter.kategori == madFilter || madFilter == "menu") {
+                    let klon = temp.cloneNode(true).content;
+                    //indsæt data i klonen
+                    klon.querySelector("img").src = "imgs/small/" + retter.billede + "-sm.jpg";
+                    klon.querySelector("img").addEventListener("click", () => {
+                        visModal(retter);
+                    });
+                    klon.querySelector("h2").textContent = retter.navn;
+                    klon.querySelector(".data-kortbeskrivelse").textContent = retter.kortbeskrivelse;
+                    klon.querySelector(".data-pris").textContent = "Pris: " + retter.pris + ",-";
+                    //placer klon i DOM
+                    dest.appendChild(klon);
+                }
+            })
+        }
+
+        function visModal(retter) {
+            modal.classList.add("vis");
+            modal.querySelector(".modal-navn").textContent = retter.navn;
+            modal.querySelector(".modal-billede").alt = "Foto af" + retter.navn;
+            modal.querySelector(".modal-billede").src = "imgs/small/" + retter.billede + "-sm.jpg";
+            modal.querySelector(".modal-langbeskrivelse").textContent = retter.langbeskrivelse;
+            modal.querySelector("button").addEventListener("click", skjulModal);
+        }
+
+        function skjulModal() {
+            modal.classList.remove("vis");
+            //window.scrollTo(0);
+        }
+    </script>
+</body>
+
+</html>
